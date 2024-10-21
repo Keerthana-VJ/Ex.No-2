@@ -35,69 +35,68 @@ To write a lex program to implement lexical analyzer to recognize a few patterns
 7.	Compile that file with C compiler and verify the output.
 
 # PROGRAM:
-## exp2.l
+## ex2.l
 ```
 %{
 #include <stdio.h>
 #include <stdlib.h>
+
 int COMMENT = 0;
 %}
 
-identifier [a-zA-Z][a-zA-Z0-9]*
+identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 %%
-#.* { printf("PREPROCESSOR DIRECTIVE: %s\n", yytext); }
-int|float|char|double|while|for|do|if|break|continue|void|switch|case|long|struct|const|typedef|return|else|goto { printf("KEYWORD: %s\n", yytext); }
-"//".* { /* Ignore single-line comments */ }
-"/*" { COMMENT = 1; }
-"*/" { COMMENT = 0; }
-[0-9]+ { printf("NUMBER: %s\n", yytext); }
-\".*?\" { printf("STRING: %s\n", yytext); }  // Recognize strings
-{identifier} { printf("IDENTIFIER: %s\n", yytext); }
-\{ { printf("BLOCK BEGINS\n"); }
-\} { printf("BLOCK ENDS\n"); }
-"=" { printf("ASSIGNMENT OPERATOR: %s\n", yytext); }   // Assignment operator
-"<="|">="|"<"|">"|"==" { printf("RELATIONAL OPERATOR: %s\n", yytext); }  // Relational operators
-
-
+#.*                       { printf("\n%s is a PREPROCESSOR DIRECTIVE", yytext); }
+int|float|char|double|while|for|do|if|break|continue|void|switch|case|long|struct|const|typedef|return|else|goto { 
+                           printf("\n\t%s is a KEYWORD", yytext); 
+}
+"/*"                     { COMMENT = 1; }
+"*/"                     { COMMENT = 0; }
+{identifier}\(           { if (!COMMENT) printf("\n\nFUNCTION\n\t%s", yytext); }
+\{                       { if (!COMMENT) printf("\n BLOCK BEGINS"); }
+\}                       { if (!COMMENT) printf("\n BLOCK ENDS"); }
+{identifier}(\[[0-9]*\])? { if (!COMMENT) printf("\n\t%s IDENTIFIER", yytext); }
+\"[^\"\\]*(\\.[^\"\\]*)*\" { if (!COMMENT) printf("\n\t%s is a STRING", yytext); }
+[0-9]+                   { if (!COMMENT) printf("\n\t%s is a NUMBER", yytext); }
+=                        { if (!COMMENT) printf("\n\t%s is an ASSIGNMENT OPERATOR", yytext); }
+\<=|\>=|\<|==|\>        { if (!COMMENT) printf("\n\t%s is a RELATIONAL OPERATOR", yytext); }
+[\+\-\*/]               { if (!COMMENT) printf("\n\t%s is an ARITHMETIC OPERATOR", yytext); }
+[^\n]+                  { if (!COMMENT) printf("\n\tUNKNOWN CHARACTER: %s", yytext); } // Catch-all for unrecognized characters
+\n                      { /* Ignore newline */ }
 %%
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) { 
     if (argc > 1) {
-        FILE *file = fopen(argv[1], "r");
+        FILE *file = fopen(argv[1], "r"); 
         if (!file) {
-            printf("Could not open %s\n", argv[1]);
+            printf("Could not open %s \n", argv[1]); 
             exit(1);
         }
-        yyin = file; // Set input to the file
-        printf("Reading from file: %s\n", argv[1]); // Debugging output
+        yyin = file;
     }
-    yylex();
+    yylex(); 
+    printf("\n\n"); 
     return 0;
 }
 
-int yywrap() {
-    return 0;
-}
+int yywrap() { return 1; }
+
 ```
 ## var.c
 ```
 #include<stdio.h>
 int main()
 {
-int a,b;
-return 0;
+    int a,b;
+    return 0;
 }
 ```
-## Commands:
-```
-lex exp2.l 
-gcc lex.yy.c
-./a.out var.c
-```
+
 
 # OUTPUT:
-![377333981-8f4624f8-eb63-4223-81df-65c90a81afb8](https://github.com/user-attachments/assets/3532400a-4cbc-4d57-a2a9-489f51caf944)
+![375296998-57e58d17-72f5-4e5a-a555-94b9fcd3b385](https://github.com/user-attachments/assets/4f37e07a-d701-49b6-966e-4a0e13587e29)
+
 
 # RESULT
 The lexical analyzer is implemented using lex and the output is verified.
